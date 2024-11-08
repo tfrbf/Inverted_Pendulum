@@ -7,11 +7,11 @@ from math import pi, sin, cos, pow
 
 # SYSTEM PARAMETERS
 g = 9.8   # GRAVITY
-L1 = 1.0   # PENDULUM LENGTH (m)
-L0 = 1.0   # ARM LENGTH (m)
+L_p = 1.0   # PENDULUM LENGTH (m)
+L_a = 1.0   # ARM LENGTH (m)
 m1 = 0.5   # PENDULUM MASS (kg)
-I0 = 0     # Moment of inertia of the arm
-I1 = 0     # Moment of inertia of the PENDULUM
+I_a = 0     # Moment of inertia of the arm
+I_p = 0     # Moment of inertia of the PENDULUM
 mc = 0           # Location of the center of mass of the pendulum
 
 # SIMULATION PARAMETERS
@@ -34,14 +34,14 @@ Kp_alpha = 3.1
 Kd_alpha = 4.8
 
 # وضعیت اولیه
-state = np.array([th, Y, x, Z])
+state = np.array([theta, dtheta, alpha, dalpha])
 stabilizing = False
 
 # متغیر برای ذخیره نیروی کنترلی
 u_values = []
 
 def energy(th, dth):
-    return 0.5 * (I0 * pow(alpha,2) + m1 * pow(m1,2) + I1 * pow(dtheta,2)) + (m1 * g * L1 * (cos(theta) - 1))
+    return 0.5 * (I_a * pow(alpha,2) + m1 * pow(m1,2) + I_p * pow(dtheta,2)) + (m1 * g * L_p * (cos(theta) - 1))
 
 def isControllable(th, dth):
     return th < pi/9 and abs(energy(th, dth)) < 0.5
@@ -49,23 +49,23 @@ def isControllable(th, dth):
 def derivatives(state, t):
     global stabilizing
     ds = np.zeros_like(state)
-    _th = state[0]
-    _Y = state[1]  # سرعت زاویه‌ای
-    _x = state[2]
-    _Z = state[3]  # سرعت کالسکه
+    _theta = state[0]
+    _dtheta = state[1]  # سرعت زاویه‌ای
+    _alpha = state[2]
+    _dalpha = state[3]  # سرعت کالسکه
 
     # کنترل با توجه به وضعیت پایدارسازی
-    if stabilizing or isControllable(_th, _Y):
+    if stabilizing or isControllable(_theta, _dtheta):
         stabilizing = True
-        u = Kp_th * _th + Kd_th * _Y + Kp_x * (_x - x0) + Kd_x * _Z
+        u = Kp_theta * _theta + Kd_theta * _dtheta + Kp_alpha * (_alpha - x0) + Kd_alpha * _dalpha
     else:
-        E = energy(_th, _Y)
-        u = k * E * _Y * cos(_th)
+        E = energy(_theta, _dtheta)
+        u = k * E * _dtheta * cos(_theta)
 
     u_values.append(u)  # ذخیره نیروی کنترلی
 
     ds[0] = state[1]
-    ds[1] = (g * sin(_th) - u * cos(_th)) / L
+    ds[1] = (g * sin(_theta) - u * cos(_theta)) / L_p
     ds[2] = state[3]
     ds[3] = u
 
@@ -137,8 +137,8 @@ plt.show()
 
 
 # پارامترهای شبیه‌سازی گرافیکی پاندول
-pxs = L * np.sin(ths) + xs
-pys = L * np.cos(ths)
+pxs = L_p * np.sin(ths) + xs
+pys = L_p * np.cos(ths)
 
 fig = plt.figure()
 ax = fig.add_subplot(111, autoscale_on=False, xlim=(-1.5, 1.5), ylim=(-1.2, 1.2))
