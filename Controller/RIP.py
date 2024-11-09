@@ -1,20 +1,22 @@
 # import libraries
 import numpy as np
-from scipy import optimize
+from scipy import optimize, constants
 import matplotlib.pyplot as plt
 import scipy.integrate as integrate
 import matplotlib.animation as animation
 from matplotlib.patches import Rectangle
 from math import pi, sin, cos, pow
 
+
 # system parameters
-g   = 9.8   # gravity
-L_p = 1.0   # pendulum length (m)
-L_a = 1.0   # arm length (m)
-m1  = 0.5   # pendulum mass (kg)
-I_a = 0     # Moment of inertia of the arm
-I_p = 0     # Moment of inertia of the pendulum
-mc  = 0     # Location of the center of mass of the pendulum
+g   = constants.g      # gravity
+L_p = 0.30              # pendulum length (m)
+L_a = 0.38             # arm length (m)
+m_p = 0.5              # pendulum mass (kg)
+m_a = 0.6              # arm mass
+I_a = 0.0025           # Moment of inertia of the arm
+I_p = 0.006            # Moment of inertia of the pendulum
+mc  = 0.15             # Location of the center of mass of the pendulum
 
 # simulation parameters
 dt = 0.05
@@ -22,18 +24,18 @@ Tmax = 35
 t = np.arange(0.0, Tmax, dt)
 
 # initail condition
-theta = pi - 0.1  # pendulum initial angel
-dtheta = .0       # pendulum initial speed
-alpha = .0        # arm initial angle
-x0 = 0            # موقعیت هدف کالسکه
-dalpha= -0.05     # arm initial speed
-k = 0.08          # energy control gain
+theta = pi - 0.1      # pendulum initial angel
+dtheta = .0           # pendulum initial speed
+alpha = .0            # arm initial angle
+x0 = 0                # موقعیت هدف کالسکه
+dalpha= -0.05         # arm initial speed
+k = 0.4               # energy control gain
 
-# PID controller gains
-Kp_theta = 50
-Kd_theta = 15
-Kp_alpha = 3.1
-Kd_alpha = 4.8
+# PID controller gains (Based on ACO, beta =1)
+Kp_theta = 4.091
+Kd_theta = 0.350
+Kp_alpha = 0.125
+Kd_alpha = 0.281
 
 # creating initial state
 state = np.array([theta, dtheta, alpha, dalpha])
@@ -44,11 +46,11 @@ u_values = []
 
 # energy calculation
 def energy(th, dth): 
-    return 0.5 * (I_a * pow(alpha,2) + m1 * pow(m1,2) + I_p * pow(dtheta,2)) + (m1 * g * L_p * (cos(theta) - 1))
+    return 0.5 * (I_a * pow(alpha,2) + m_p * pow(m_p,2) + I_p * pow(dtheta,2)) + (m_p * g * L_p * (cos(theta) - 1))
 
 # siwtch for control or swing up mode
 def isControllable(th, dth):
-    return th < pi/9 and abs(energy(th, dth)) < 0.5
+    return th < pi/6 and abs(energy(th, dth)) < 0.5
 
 
 def derivatives(state, t):
@@ -143,7 +145,7 @@ plt.grid()
 plt.tight_layout()
 plt.show()
 
-
+'''
 # پارامترهای شبیه‌سازی گرافیکی پاندول
 pxs = L_p * np.sin(theta_s) + alpha_s
 pys = L_p * np.cos(theta_s)
@@ -186,3 +188,4 @@ def animate(i):
 ani = animation.FuncAnimation(fig, animate, np.arange(1, len(solution)), interval=25, blit=True, init_func=init)
 
 plt.show()
+'''
