@@ -10,12 +10,12 @@ from math import pi, sin, cos, pow
 
 # system parameters
 g   = constants.g      # gravity
-L_p = 0.30              # pendulum length (m)
+L_p = 0.30             # pendulum length (m)
 L_a = 0.38             # arm length (m)
 m_p = 0.5              # pendulum mass (kg)
 m_a = 0.6              # arm mass
-I_a = 0.0025           # Moment of inertia of the arm
-I_p = 0.006            # Moment of inertia of the pendulum
+I_a = m_p * pow(L_p,2) # Moment of inertia of the arm = 0.0025
+I_p = m_a * pow(L_a,2) # Moment of inertia of the pendulum = 0.006
 mc  = 0.15             # Location of the center of mass of the pendulum
 
 # simulation parameters
@@ -64,7 +64,7 @@ def derivatives(state, t):
     # control switch based on energy
     if stabilizing or isControllable(_theta, _dtheta):
         stabilizing = True
-        u = Kp_theta * _theta + Kd_theta * _dtheta + Kp_alpha * (_alpha - x0) + Kd_alpha * _dalpha #?
+        u = Kp_theta * _theta + Kd_theta * _dtheta + Kp_alpha * (_theta - x0) + Kd_alpha * _dalpha #?
     else:
         E = energy(_theta, _dtheta)
         u = k * E * _dtheta * cos(_theta)
