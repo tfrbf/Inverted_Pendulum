@@ -20,15 +20,15 @@ mc  = 0.15             # Location of the center of mass of the pendulum
 
 # simulation parameters
 dt = 0.05
-Tmax = 35
+Tmax = 29.6
 t = np.arange(0.0, Tmax, dt)
 
 # initail condition
 theta = pi - 0.1      # pendulum initial angel
 dtheta = .0           # pendulum initial speed
 alpha = .0            # arm initial angle
-x0 = 0                # موقعیت هدف کالسکه
-dalpha= -0.05         # arm initial speed
+theta_d = 0           # موقعیت هدف 
+dalpha= 0       # arm initial speed
 k = 0.4               # energy control gain
 
 # PID controller gains (Based on ACO, beta =1)
@@ -40,43 +40,43 @@ Kd_alpha = 0.281
 # creating initial state
 state = np.array([theta, dtheta, alpha, dalpha])
 stabilizing = False
-
-# saving force control values
 u_values = []
 
-# energy calculation
-def energy(th, dth): 
-    return 0.5 * (I_a * pow(alpha,2) + m_p * pow(m_p,2) + I_p * pow(dtheta,2)) + (m_p * g * L_p * (cos(theta) - 1))
 
-# siwtch for control or swing up mode
+
+def energy(theta, dtheta):
+    return 0.5 * (I_a * pow(dalpha,2) + m_p * pow(m_p,2) + I_p * pow(dtheta,2)) + (m_p * g * L_p * (cos(theta) - 1))
+
 def isControllable(th, dth):
     return th < pi/6 and abs(energy(th, dth)) < 0.5
 
-
 def derivatives(state, t):
     global stabilizing
-    ds = np.zeros_like(state) #?
-    _theta  = state[0]  # pendulum angle
-    _dtheta = state[1]  # pendulum velocity
-    _alpha  = state[2]  # arm angle
-    _dalpha = state[3]  # arm velovity
+    ds = np.zeros_like(state)  # مشتقات حالت‌ها را در این آرایه ذخیره می‌کنیم
+    _theta  = state[0]  # زاویه پاندول
+    _dtheta = state[1]  # سرعت زاویه‌ای پاندول
+    _alpha  = state[2]  # زاویه بازو
+    _dalpha = state[3]  # سرعت زاویه‌ای بازو
 
-    # control switch based on energy
+    # سوئیچ کنترل بر اساس انرژی
     if stabilizing or isControllable(_theta, _dtheta):
         stabilizing = True
-        u = Kp_theta * _theta + Kd_theta * _dtheta + Kp_alpha * (_theta - x0) + Kd_alpha * _dalpha #?
+        # کنترلر تناسبی-مشتقی (PD) برای پایدارسازی
+        u = Kp_theta * _theta + Kd_theta * _dtheta + Kp_alpha * (_alpha) + Kd_alpha * _dalpha
     else:
+        # محاسبه انرژی و اعمال کنترلر بر اساس آن
         E = energy(_theta, _dtheta)
-        u = k * E * _dtheta * cos(_theta)
+        u = k * E * _dtheta * np.cos(_theta)
 
-    u_values.append(u)  
+    u_values.append(u)  # ذخیره مقادیر گشتاور کنترلی
 
-    ds[0] = state[1]
-    ds[1] = (g * sin(_theta) - u * cos(_theta)) / L_p
-    ds[2] = state[3]
-    ds[3] = u
+    # معادلات حرکت
+    ds[0] = _dtheta  # مشتق زاویه پاندول
+    ds[1] = (g * np.sin(_theta) - u * np.cos(_theta)) / L_p  # شتاب زاویه‌ای پاندول
+    ds[2] = _dalpha  # مشتق زاویه بازو
+    ds[3] = u  # شتاب زاویه‌ای بازو بر اساس گشتاور کنترل
 
-    return ds #?
+    return ds
 
 # simulation
 print("Integrating...")
@@ -100,37 +100,37 @@ plt.figure(figsize=(12, 12))
 
 # pendulum angle plot
 plt.subplot(3, 2, 1)
-plt.plot(t, theta_s, label="Angle (θ)")
-plt.xlabel("Time (s)")
+plt.plot(t, theta_s, label="Pendulum Angle (θ)")
+#.xlabel("Time (s)")
 plt.ylabel("θ (rad)")
-plt.title("Pendulum Angle (θ) over Time")
+#plt.title("Pendulum Angle (θ) over Time")
 plt.grid()
 plt.legend()
 
 # pendulum velocity plot
 plt.subplot(3, 2, 2)
-plt.plot(t, dtheta_s, label="Angular Velocity (θ')", color='orange')
-plt.xlabel("Time (s)")
+plt.plot(t, dtheta_s, label="Pendulum Velocity (θ')", color='orange')
+#plt.xlabel("Time (s)")
 plt.ylabel("θ' (rad/s)")
-plt.title("Angular Velocity (θ') over Time")
+#plt.title("Angular Velocity (θ') over Time")
 plt.grid()
 plt.legend()
 
 # arm position plot
 plt.subplot(3, 2, 3)
-plt.plot(t, alpha_s, label="Cart Position (x)", color='green')
-plt.xlabel("Time (s)")
-plt.ylabel("x (m)")
-plt.title("Cart Position (x) over Time")
+plt.plot(t, alpha_s, label="Arm Angle (α)", color='green')
+#plt.xlabel("Time (s)")
+plt.ylabel("α (rad/s)")
+#plt.title("Cart Position (x) over Time")
 plt.grid()
 plt.legend()
 
 # arm velocity 
 plt.subplot(3, 2, 4)
-plt.plot(t, dalpha_s, label="Cart Velocity (x')", color='red')
+plt.plot(t, dalpha_s, label="Arm Velocity (α')", color='red')
 plt.xlabel("Time (s)")
-plt.ylabel("x' (m/s)")
-plt.title("Cart Velocity (x') over Time")
+plt.ylabel("α' (rad/s)")
+#plt.title("Cart Velocity (x') over Time")
 plt.legend()
 plt.grid()
 
@@ -139,7 +139,7 @@ plt.subplot(3, 2, 5)
 plt.plot(t, u_values, label="Control Force (u)", color='purple')
 plt.xlabel("Time (s)")
 plt.ylabel("u (N)")
-plt.title("Control Force (u) over Time")
+#plt.title("Control Force (u) over Time")
 plt.legend()
 plt.grid()
 plt.tight_layout()
