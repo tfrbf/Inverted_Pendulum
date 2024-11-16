@@ -21,7 +21,7 @@ mc  = 0.15             # Location of the center of mass of the pendulum
 
 # simulation parameters
 dt = 0.05
-Tmax = 20.85
+Tmax = 30
 t = np.arange(0.0, Tmax, dt)
 
 # initail condition
@@ -147,6 +147,17 @@ plt.ylabel("u (N)")
 #plt.title("Control Force (u) over Time")
 plt.legend()
 plt.grid()
+
+# energy plot
+plt.subplot(3, 2, 6)
+plt.plot(t, energy, label="Energy (J)", color='black')
+plt.xlabel("Time (s)")
+plt.ylabel("u (N)")
+#plt.title("Control Force (u) over Time")
+plt.legend()
+plt.grid()
+
+
 plt.tight_layout()
 plt.show()
 
