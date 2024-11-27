@@ -5,17 +5,17 @@ import matplotlib.animation as animation
 from matplotlib.patches import Rectangle
 from math import pi, sin, cos
 
-# ثابت‌های فیزیکی
-g = 9.8   # شتاب گرانش (m/s^2)
-L = 1.0   # طول پاندول (m)
-m = 0.5   # جرم پاندول (kg)
 
-# زمان شبیه‌سازی
+g = 9.8   
+L = 1.0   
+m = 0.5   
+
+
 dt = 0.05
 Tmax = 30
 t = np.arange(0.0, Tmax, dt)
 
-# شرایط اولیه
+
 Y = .0          # سرعت زاویه‌ای اولیه پاندول
 th = pi - 0.1   # زاویه اولیه پاندول
 x = .0          # موقعیت اولیه کالسکه
