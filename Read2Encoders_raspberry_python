@@ -1,0 +1,72 @@
+from machine import Pin
+import time
+
+# Define GPIO pins for the first encoder
+encoder1_a_pin = 14  # Replace with your GPIO pin for Encoder 1 Channel A
+encoder1_b_pin = 15  # Replace with your GPIO pin for Encoder 1 Channel B
+
+# Define GPIO pins for the second encoder
+encoder2_a_pin = 16  # Replace with your GPIO pin for Encoder 2 Channel A
+encoder2_b_pin = 17  # Replace with your GPIO pin for Encoder 2 Channel B
+
+# Variables to store encoder positions and states
+position1 = 0
+position2 = 0
+last_state1 = 0
+last_state2 = 0
+
+# Initialize the GPIO pins for both encoders as input with pull-down resistors
+encoder1_a = Pin(encoder1_a_pin, Pin.IN, Pin.PULL_DOWN)
+encoder1_b = Pin(encoder1_b_pin, Pin.IN, Pin.PULL_DOWN)
+encoder2_a = Pin(encoder2_a_pin, Pin.IN, Pin.PULL_DOWN)
+encoder2_b = Pin(encoder2_b_pin, Pin.IN, Pin.PULL_DOWN)
+
+# Encoder parameters
+PPR = 1024  # Pulses per Revolution
+STEPS_PER_REV = PPR * 4  # Total steps per revolution (Quadrature mode)
+
+def get_state(encoder_a, encoder_b):
+    """Read the current state of the encoder."""
+    state_a = encoder_a.value()
+    state_b = encoder_b.value()
+    return (state_a << 1) | state_b
+
+def read_encoder(encoder_a, encoder_b, last_state, position):
+    """Update position based on the current and previous state."""
+    current_state = get_state(encoder_a, encoder_b)
+
+    # Determine direction based on state transitions
+    if (last_state, current_state) in [(0b00, 0b01), (0b01, 0b11), (0b11, 0b10), (0b10, 0b00)]:
+        position += 1  # Clockwise
+    elif (last_state, current_state) in [(0b00, 0b10), (0b10, 0b11), (0b11, 0b01), (0b01, 0b00)]:
+        position -= 1  # Counterclockwise
+
+    return current_state, position
+
+def position_to_degrees(position):
+    """Convert encoder position to degrees."""
+    return (position / STEPS_PER_REV) * 360
+
+def position_to_radians(position):
+    """Convert encoder position to radians."""
+    return (position / STEPS_PER_REV) * 2 * 3.141592653589793
+
+# Initialize the last states for both encoders
+last_state1 = get_state(encoder1_a, encoder1_b)
+last_state2 = get_state(encoder2_a, encoder2_b)
+
+# Main loop for testing
+while True:
+    # Update encoder 1
+    last_state1, position1 = read_encoder(encoder1_a, encoder1_b, last_state1, position1)
+
+    # Update encoder 2
+    last_state2, position2 = read_encoder(encoder2_a, encoder2_b, last_state2, position2)
+
+    # Convert positions to degrees for printing
+    degrees1 = position_to_degrees(position1)
+    degrees2 = position_to_degrees(position2)
+
+    # Print positions in degrees
+    print(f"Encoder 1: {degrees1:.2f} degrees, Encoder 2: {degrees2:.2f} degrees")
+    time.sleep(0.2)  # Slow down for testing purposes
